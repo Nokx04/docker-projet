@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(bodyParser.json());
 
-// Connexion à la db
+// Connexion db
 const sequelize = new Sequelize(
   process.env.DATABASE_URL || 'postgresql://produser:prodpass123@localhost:5432/products_db',
   {
@@ -18,7 +18,7 @@ const sequelize = new Sequelize(
   }
 );
 
-// produits
+// Produit
 const Product = sequelize.define('Product', {
   id: {
     type: DataTypes.INTEGER,
@@ -47,12 +47,12 @@ const Product = sequelize.define('Product', {
 });
 
 
-// Healthcheck (voir si ça fonctionne)
+// Healthcheck (a verif si ça fonctionne)
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'products-api' });
 });
 
-// GET des produits
+// GET produits
 app.get('/products', async (req, res) => {
   try {
     const products = await Product.findAll();
@@ -62,7 +62,7 @@ app.get('/products', async (req, res) => {
   }
 });
 
-// GET produit par ID
+// GET produits par ID
 app.get('/products/:id', async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -75,13 +75,13 @@ app.get('/products/:id', async (req, res) => {
   }
 });
 
-// POST création de produit
+// POST créer produit
 app.post('/products', async (req, res) => {
   try {
     const { name, price, stock } = req.body;
     
     if (!name || !price) {
-      return res.status(400).json({ error: 'Champs requis: nom, prix' });
+      return res.status(400).json({ error: 'Champs requis: name, price' });
     }
     
     const product = await Product.create({
@@ -132,7 +132,7 @@ app.delete('/products/:id', async (req, res) => {
   }
 });
 
-// POST Décrémenter le stock d'un produit
+// POST décrémenter stock
 app.post('/products/:id/decrement-stock', async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -158,7 +158,7 @@ app.post('/products/:id/decrement-stock', async (req, res) => {
   }
 });
 
-// Initialiser la DB et démarrer le serveur
+// Start db et serveur
 sequelize.sync({ force: false })
   .then(() => {
     app.listen(PORT, () => {

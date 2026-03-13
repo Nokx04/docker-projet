@@ -1,5 +1,9 @@
 version: '3.9'
-users:
+
+services:
+  # ============ BASES DE DONNÉES ============
+  
+  db-users:
     image: postgres:14-alpine
     container_name: db-users
     environment:
@@ -18,9 +22,7 @@ users:
       interval: 10s
       timeout: 5s
       retries: 5
-services:
-  # ============ BASES DE DONNÉES ============
-  
+
   db-products:
     image: postgres:14-alpine
     container_name: db-products
@@ -41,6 +43,29 @@ services:
       timeout: 5s
       retries: 5
 
+  db-orders:
+    image: postgres:14-alpine
+    container_name: db-orders
+    environment:
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: orduser
+      POSTGRES_PASSWORD: ordpass123
+    ports:
+      - "5433:5432"
+    volumes:
+      - orders-db-data:/var/lib/postgresql/data
+      - ./orders-service/database.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orduser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============ SERVICES MÉTIER ============
+
+
   users-api:
     build:
       context: ./users-service
@@ -49,8 +74,8 @@ services:
     ports:
       - "5001:3000"
     environment:
-      DATABASE_URL: postgresql://produser:prodpass123@db-products:5432/products_db
-      NODEENV: development
+      DATABASE_URL: postgresql://useruser:userpass123@db-users:5432/users_db
+      NODE_ENV: development
     depends_on:
       db-users:
         condition: service_healthy
@@ -59,41 +84,16 @@ services:
     volumes:
       - ./users-service:/app
 
-  db-orders:
-    image: postgres:14-alpine
-    container_name: db-orders
-    environment:
-      POSTGRES_DB: orders_db
-      POSTGRES_USER: orduser
-      POSTGRES_PASSWORD: ordpass123
-      DATABASE_URL: postgresql://orduser:ordpass123@db-orders:5432/orders_db
-      PRODUCTS_API_URL: http://products-api:3000
-      USERS_API_URL: http://users-api:3000
-      NODE_ENV: development
-    networks:
-      - ecommerce-network
-    ports:
-      - "5433:3000"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U orduser"]
-      interval: 10s
-      users-api:
-        condition: service_started
-      timeout: 5s
-      retries: 5
-
-  # ============ SERVICES MÉTIER ============
-
   products-api:
     build:
       context: ./products-service
       dockerfile: Dockerfile
     container_name: products-api
     ports:
-      - "5002:5000"
+      - "5002:3000"
     environment:
       DATABASE_URL: postgresql://produser:prodpass123@db-products:5432/products_db
-      FLASK_ENV: development
+      NODE_ENV: development
     depends_on:
       db-products:
         condition: service_healthy
@@ -108,17 +108,17 @@ services:
       dockerfile: Dockerfile
     container_name: orders-api
     ports:
-      - "5003:5000"
+      - "5003:3000"
     environment:
       DATABASE_URL: postgresql://orduser:ordpass123@db-orders:5432/orders_db
-      PRODUCTS_API_URL: http://products-api:5000
-      FLASK_ENV: development
+      PRODUCTS_API_URL: http://products-api:3000
+      USERS_API_URL: http://users-api:3000
+      NODE_ENV: development
     depends_on:
       db-orders:
         condition: service_healthy
       products-api:
         condition: service_started
-  users-db-data:
     networks:
       - ecommerce-network
     volumes:
@@ -134,12 +134,14 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
+      - users-api
       - products-api
       - orders-api
     networks:
       - ecommerce-network
 
 volumes:
+  users-db-data:
   products-db-data:
   orders-db-data:
 

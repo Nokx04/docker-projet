@@ -1,0 +1,18 @@
+{
+  "name": "orders-service",
+  "version": "1.0.0",
+  "description": "Orders microservice",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.10.0",
+    "sequelize": "^6.35.1",
+    "dotenv": "^16.3.1",
+    "body-parser": "^1.20.2",
+    "axios": "^1.6.0"
+  }
+}
