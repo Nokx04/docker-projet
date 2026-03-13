@@ -1,38 +1,152 @@
-version: "3.9"
+version: '3.9'
 
 services:
-  gateway:
-    build: ./gateway
+  # ============ BASES DE DONNÉES ============
+
+  db-products:
+    image: postgres:14-alpine
+    container_name: db-products
+    environment:
+      POSTGRES_DB: products_db
+      POSTGRES_USER: produser
+      POSTGRES_PASSWORD: prodpass123
     ports:
-      - "8080:80"       # map conteneur:80 → hôte:8080
-    depends_on:
-      - users-service
-    networks:
-      - ecommerce-network
-    restart: unless-stopped
-
-  users-service:
-    build: ./users-service
-    env_file: .env
-    networks:
-      - ecommerce-network
-      - users-db-network
-    depends_on:
-      - users-db
-    restart: unless-stopped
-
-  users-db:
-    image: postgres:15-alpine
-    env_file: .env
+      - "5432:5432"
     volumes:
-      - users-data:/var/lib/postgresql/data
+      - products-db-data:/var/lib/postgresql/data
+      - ./products-services/database.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - users-db-network
+      - ecommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U produser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-orders:
+    image: postgres:14-alpine
+    container_name: db-orders
+    environment:
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: orduser
+      POSTGRES_PASSWORD: ordpass123
+    ports:
+      - "5433:5432"
+    volumes:
+      - orders-db-data:/var/lib/postgresql/data
+      - ./orders-services/database.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orduser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-users:
+    image: postgres:15-alpine
+    container_name: db-users
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5431:5432"
+    volumes:
+      - users-db-data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============ SERVICES MÉTIER ============
+
+  products-api:
+    build:
+      context: ./products-services
+      dockerfile: Dockerfile
+    container_name: products-api
+    ports:
+      - "5002:3000"
+    environment:
+      DATABASE_URL: postgresql://produser:prodpass123@db-products:5432/products_db
+      NODE_ENV: development
+    depends_on:
+      db-products:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  orders-api:
+    build:
+      context: ./orders-services
+      dockerfile: Dockerfile
+    container_name: orders-api
+    ports:
+      - "5003:3000"
+    environment:
+      DATABASE_URL: postgresql://orduser:ordpass123@db-orders:5432/orders_db
+      PRODUCTS_API_URL: http://products-api:3000
+      USERS_API_URL: http://users-api:5001
+      NODE_ENV: development
+    depends_on:
+      db-orders:
+        condition: service_healthy
+      products-api:
+        condition: service_started
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  users-api:
+    build:
+      context: ./users-services
+      dockerfile: Dockerfile
+    container_name: users-api
+    ports:
+      - "5001:5001"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    depends_on:
+      db-users:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # ============ API GATEWAY ============
+
+  api-gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - users-api
+      - products-api
+      - orders-api
+    networks:
+      - ecommerce-network
     restart: unless-stopped
 
 volumes:
-  users-data:
+  products-db-data:
+  orders-db-data:
+  users-db-data:
 
 networks:
   ecommerce-network:
-  users-db-network:
+    driver: bridge
+
+

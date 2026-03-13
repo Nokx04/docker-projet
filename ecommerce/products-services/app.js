@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 // Connexion db
 const sequelize = new Sequelize(
-  process.env.DATABASE_URL || 'postgresql://produser:prodpass123@localhost:5432/products_db',
+  process.env.DATABASE_URL || 'postgresql://produser:prodpass123@db-products:5432/products_db',
   {
     dialect: 'postgres',
     logging: false

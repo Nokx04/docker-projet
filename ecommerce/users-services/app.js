@@ -4,10 +4,10 @@ const app = express();
 app.use(express.json());
 
 const pool = new Pool({
-    host: "users-db",
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.POSTGRES_DB,
+    host: "db-users",
+    user: process.env.POSTGRES_USER || "postgres",
+    password: process.env.POSTGRES_PASSWORD || "postgres",
+    database: process.env.POSTGRES_DB || "postgres",
     port: 5432
 });
 

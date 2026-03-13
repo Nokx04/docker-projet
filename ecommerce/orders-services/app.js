@@ -12,16 +12,16 @@ app.use(bodyParser.json());
 
 // Connexion db
 const sequelize = new Sequelize(
-  process.env.DATABASE_URL || 'postgresql://orduser:ordpass123@localhost:5433/orders_db',
+  process.env.DATABASE_URL || 'postgresql://orduser:ordpass123@db-orders:5432/orders_db',
   {
     dialect: 'postgres',
     logging: false
   }
 );
 
-// url vers les api (A VOIR AVEC USERS QUAND RAPH AURA FINI)
-const PRODUCTS_API_URL = process.env.PRODUCTS_API_URL || 'http://localhost:5002';
-const USERS_API_URL = process.env.USERS_API_URL || 'http://localhost:5001';
+// URLs vers les APIs (utiliser les noms de services Docker en interne)
+const PRODUCTS_API_URL = process.env.PRODUCTS_API_URL || 'http://products-api:3000';
+const USERS_API_URL = process.env.USERS_API_URL || 'http://users-api:5001';
 
 // Orders
 const Order = sequelize.define('Order', {
