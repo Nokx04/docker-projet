@@ -46,6 +46,8 @@ const Product = sequelize.define('Product', {
   timestamps: false
 });
 
+// Synchroniser la base de données
+sequelize.sync({ alter: true }).catch(err => console.error('Sync error:', err));
 
 // Healthcheck (a verif si ça fonctionne)
 app.get('/health', (req, res) => {

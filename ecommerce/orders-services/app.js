@@ -59,6 +59,8 @@ const Order = sequelize.define('Order', {
   timestamps: false
 });
 
+// Synchroniser la base de données
+sequelize.sync({ alter: true }).catch(err => console.error('Sync error:', err));
 
 // Healthcheck
 app.get('/health', (req, res) => {
