@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # ============ BASES DE DONNÉES ============
 
@@ -131,7 +129,7 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - users-api
       - products-api
