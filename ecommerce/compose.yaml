@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:80"       # map conteneur:80 → hôte:8080
+    depends_on:
+      - users-service
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  users-service:
+    build: ./users-service
+    env_file: .env
+    networks:
+      - ecommerce-network
+      - users-db-network
+    depends_on:
+      - users-db
+    restart: unless-stopped
+
+  users-db:
+    image: postgres:15-alpine
+    env_file: .env
+    volumes:
+      - users-data:/var/lib/postgresql/data
+    networks:
+      - users-db-network
+    restart: unless-stopped
+
+volumes:
+  users-data:
+
+networks:
+  ecommerce-network:
+  users-db-network:
