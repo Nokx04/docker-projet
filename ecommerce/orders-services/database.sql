@@ -7,3 +7,9 @@ CREATE TABLE IF NOT EXISTS orders (
     status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO orders (user_id, product_id, quantity, total_price) VALUES
+    (1, 1, 1, 999.99),
+    (1, 2, 1, 299.99),
+    (1, 3, 1, 129.99),
+    (1, 4, 1, 49.99);
