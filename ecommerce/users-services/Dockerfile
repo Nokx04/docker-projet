@@ -1,7 +1,4 @@
-FROM node:20-alpine
-
-LABEL maintainer="studentB"
-LABEL version="1.0"
+FROM node:18-alpine
 
 WORKDIR /app
 

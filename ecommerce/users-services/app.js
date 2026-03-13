@@ -24,13 +24,17 @@ async function initDB() {
 }
 initDB();
 
+// Healthcheck
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+
+// GET users
 app.get("/users", async (req, res) => {
     const result = await pool.query("SELECT id, username, email, created_at FROM users");
     res.json(result.rows);
 });
 
+// POST users
 app.post("/users", async (req, res) => {
     const { username, email, password } = req.body;
     await pool.query(
@@ -40,6 +44,7 @@ app.post("/users", async (req, res) => {
     res.status(201).json({ message: "User created" });
 });
 
+// POST login des users
 app.post("/users/login", async (req, res) => {
     const { email, password } = req.body;
     const result = await pool.query(
@@ -50,4 +55,5 @@ app.post("/users/login", async (req, res) => {
     res.json({ message: "Login successful", user_id: result.rows[0].id });
 });
 
+// Démarrer le serveur
 app.listen(5001, "0.0.0.0", () => console.log("Users service running on 5001"));

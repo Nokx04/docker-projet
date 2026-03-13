@@ -1,5 +1,5 @@
 services:
-  # ============ BASES DE DONNÉES ============
+  # ============ BDD ============
 
   db-products:
     image: postgres:14-alpine
@@ -64,7 +64,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ============ SERVICES MÉTIER ============
+  # ============ SERVICES ============
 
   products-api:
     build:
@@ -136,7 +136,7 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - users-api
       - products-api
