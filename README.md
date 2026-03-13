@@ -22,6 +22,8 @@ Tous les services seront accessibles via `http://localhost:8080`
 
 Si jamais cela ne vous convient pas, rdv ligne 139 dans le compose.yaml pour le changer.
 
+Le .env est accessible afin de tester le projet, il ne s'agit pas ici d'une mise à prod donc inutile de le garder privé.
+
 ## Endpoints
 
 ### Users
